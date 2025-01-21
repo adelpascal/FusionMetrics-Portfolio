@@ -1,0 +1,137 @@
+/* market_trends.css */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.market-trends-section {
+    background-color: #000;
+    color: #fff;
+    padding: 4rem 0;
+}
+
+.market-trends-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.market-trends-content h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+.market-trends-content > p {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.market-trends-cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
+}
+
+.market-trends-card {
+    background-color: #000;
+    color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    margin: 15px;
+    max-width: 300px;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+}
+
+.market-trends-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.market-trends-card:hover::before {
+    opacity: 1;
+}
+
+.market-trends-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.market-trends-card-content {
+    padding: 20px;
+    position: relative; /* Required for button positioning */
+}
+
+.market-trends-card-content h3 {
+    color: #fff;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.market-trends-card-content p {
+    color: #fff;
+    font-size: 1em;
+    line-height: 1.5;
+}
+
+.key-takeaway {
+    font-style: italic;
+    margin-top: 2rem;
+    color: #ccc;
+    text-align: center;
+}
+
+.content {
+    display: none;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.expanded {
+    display: block;
+    max-height: 2000px; /* Or max-height: none */
+}
+
+
+.read-more-btn {
+    background-color: transparent; /* Transparent background */
+    color: #007bff;             /* BCG Blue or your desired color */
+    cursor: pointer;
+    padding: 5px 10px;         /* Smaller padding */
+    border: none;
+    font-size: 14px;            /* Slightly smaller font size */
+    font-weight: 500;          /* Slightly bolder */
+    margin-top: 10px;
+    text-decoration: none;   /* Remove underline */
+    display: inline-block;    /* For better spacing control */
+    transition: color 0.3s ease; /* Smooth color transition on hover */
+}
+.read-more-btn::after {    /* Add a right arrow after the text */
+    content: '\276F';         /* Unicode for a right arrow */
+    margin-left: 5px;         /* Spacing between text and arrow */
+    transition: margin-left 0.3s ease;  /* Smooth transition */
+}
+.read-more-btn:hover {
+    color: #0056b3;  /* Darker blue or your desired hover color */
+
+}
+
+.read-more-btn:hover::after { /* Animate arrow on hover */
+    margin-left: 10px;
+}

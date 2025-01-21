@@ -1,0 +1,242 @@
+/* introduction.css */
+
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    margin: 0; /* Correct margin */
+    padding: 0; /* Add padding if needed */
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+
+.container {
+    max-width: 1200px; /* Was 960px, now wider */
+    margin: 0 auto;
+    padding: 0 3rem; /* Increased padding for more space */
+    box-sizing: border-box;
+}
+
+
+/* Banner Styles */
+.banner {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.banner h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #222;
+}
+
+.banner p {
+    font-size: 1.25rem;
+    color: #555;
+}
+
+/* Section Styles */
+.who-we-are,
+.team-leadership,
+.mission-values,
+.aspirations-governance,
+.how-we-work,
+.key-focus-areas,
+.commitments,
+.sustainability-impact,
+.featured-initiatives,
+.keep-exploring {
+    margin-bottom: 3rem;
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+}
+
+h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+}
+
+p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+ul {
+    list-style: disc;
+    padding-left: 20px;
+    margin-bottom: 1.5rem;
+}
+
+li {
+    margin-bottom: 0.5rem;
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: #0056b3;
+}
+
+.arrow-link {
+    display: inline-block;
+}
+
+.sub-sections {
+    margin-top: 2rem;
+}
+
+/* Grid Styles (Responsive) */
+.two-column-grid,
+.three-column-grid,
+.four-column-grid {
+    display: grid;
+    gap: 3rem; /* Increased gap */
+}
+
+
+
+.two-column-grid .text-content {
+    max-width: 600px; /* Increased width */
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left; /* Changed from center to left */
+}
+
+
+.how-we-work .text-content { /*Specific style for "How We Work" text  */
+   max-width: 50ch; 
+}
+
+.featured-impact .impact-item p { /* Featured impact text*/
+    max-width: 40ch;
+}
+
+
+@media (min-width: 768px) {
+
+    .two-column-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .two-column-grid.reverse-columns {  /* Reverse columns on larger screens */
+        grid-template-columns: 1fr 2fr; 
+    }
+     .two-column-grid .text-content {
+         margin: 0 auto;
+         text-align: left;
+
+    }
+    .three-column-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .four-column-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    .hero {
+        grid-template-columns: 2fr 1fr;
+    }
+    .hero .hero-content {
+        text-align: left;
+
+    }
+    .two-column-grid .image-content { /* Align images to right on larger screens */
+       justify-self: end;
+
+    }
+
+}
+
+
+
+.two-column-grid .image-content,
+.impact-item img,
+.explore-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+
+}
+
+
+
+/* Hero Section Styles */
+.hero {
+    display: grid;
+    grid-template-columns: 1fr; /* Mobile first single column */
+    gap: 2rem;
+    margin-bottom: 4rem;
+    padding: 4rem 2rem;
+    background-color: #f5f5f5;
+}
+
+.hero .hero-content {
+    text-align: left;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero h1 {
+    font-size: 3rem; /* Larger, bold headline */
+    font-weight: 700;
+    line-height: 1.2;
+    color: #222;
+    margin-bottom: 1rem;
+}
+
+.hero p {
+    font-size: 1.5rem; /* Bigger subtext */
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+    .hero {
+        grid-template-columns: 2fr 1fr; /* Two-column layout on larger screens */
+    }
+
+    .hero h1 {
+        font-size: 4rem; /* Even larger on desktop */
+    }
+
+    .hero p {
+        font-size: 1.75rem;
+    }
+}
+
+
+.hero .hero-image {
+    text-align: right;
+}
+
+.impact-item {
+    text-align: left;
+}
+
+.explore-item {
+    text-align: center;
+}
+
+.introduction-page {
+    padding: 4rem 2rem; /* Padding for the entire page */
+    box-sizing: border-box;
+    background-color: #f5f5f5;
+}
+
+section {
+    padding: 4rem 3rem; /* Increased vertical and horizontal padding */
+    box-sizing: border-box;
+}
