@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pixel Clock</title>
+<style>
+  :root{
+    --bg: #0f1724;        /* background */
+    --pixel: #7ee3b0;     /* active pixel color */
+    --pixel-off: #0b2a20; /* inactive pixel color */
+    --accent: #ffd166;    /* colon color */
+  }
+  html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Segoe UI,Roboto;}
+  .wrap{
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:18px;
+  }
+  canvas{
+    image-rendering: pixelated; /* keep pixel look when scaled */
+    background: linear-gradient(180deg,#071523 0%, #071B26 100%);
+    border-radius:12px;
+    box-shadow: 0 10px 30px rgba(2,6,23,.7), inset 0 1px 0 rgba(255,255,255,.02);
+  }
+  .controls{
+    display:flex;gap:10px;align-items:center;
+    color:#cbd5e1;font-size:14px;
+  }
+  .btn{
+    background:transparent;border:1px solid rgba(255,255,255,.06);
+    color:#cbd5e1;padding:8px 12px;border-radius:8px;cursor:pointer;
+  }
+  label{display:flex;gap:8px;align-items:center}
+  input[type="color"]{width:36px;height:28px;padding:0;border:0;background:none;cursor:pointer}
+  small{color:#94a3b8;display:block;text-align:center;margin-top:6px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <canvas id="c"></canvas>
+
+    <div class="controls">
+      <button class="btn" id="toggleFmt">Toggle 24/12</button>
+      <label>Pixel color <input id="colPixel" type="color" value="#7EE3B0"></label>
+      <label>BG <input id="colBG" type="color" value="#0F1724"></label>
+      <button class="btn" id="zoomIn">Zoom +</button>
+      <button class="btn" id="zoomOut">Zoom −</button>
+      <button class="btn" id="pause">Pause</button>
+    </div>
+
+    <small>Pixel Clock • Built with canvas — open in VS Code, press Live Server, enjoy 🎮</small>
+  </div>
+
+<script>
+/*
+Pixel Clock
+- edit variables below to tune pixel size, spacing, digit shapes
+*/
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d', { alpha: false });
+
+// Configuration
+let PIX = 8;            // pixel block size (base)
+let GAP = 2;            // gap between pixel blocks
+let DIGIT_SP = 6;       // spacing between digit groups
+let format24 = true;    // 24h or 12h
+let paused = false;
+
+const palette = {
+  bg: getComputedStyle(document.documentElement).getPropertyValue('--bg') || '#0f1724',
+  pixel: getComputedStyle(document.documentElement).getPropertyValue('--pixel') || '#7ee3b0',
+  pixelOff: getComputedStyle(document.documentElement).getPropertyValue('--pixel-off') || '#0b2a20',
+  accent: getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#ffd166'
+};
+
+// Digit maps (5x7 pixel digits) — 1: active, 0: off
+// Each digit is 7 rows of 5 bits (strings for readability)
+const DIGITS = {
+  '0': [
+    "11111",
+    "10001",
+    "10011",
+    "10101",
+    "11001",
+    "10001",
+    "11111"
+  ],
+  '1': [
+    "00100",
+    "01100",
+    "00100",
+    "00100",
+    "00100",
+    "00100",
+    "01110"
+  ],
+  '2': [
+    "11111",
+    "00001",
+    "00001",
+    "11111",
+    "10000",
+    "10000",
+    "11111"
+  ],
+  '3': [
+    "11111",
+    "00001",
+    "00001",
+    "01111",
+    "00001",
+    "00001",
+    "11111"
+  ],
+  '4': [
+    "10010",
+    "10010",
+    "10010",
+    "11111",
+    "00010",
+    "00010",
+    "00010"
+  ],
+  '5': [
+    "11111",
+    "10000",
+    "10000",
+    "11111",
+    "00001",
+    "00001",
+    "11111"
+  ],
+  '6': [
+    "11111",
+    "10000",
+    "10000",
+    "11111",
+    "10001",
+    "10001",
+    "11111"
+  ],
+  '7': [
+    "11111",
+    "00001",
+    "00010",
+    "00100",
+    "01000",
+    "01000",
+    "01000"
+  ],
+  '8': [
+    "11111",
+    "10001",
+    "10001",
+    "11111",
+    "10001",
+    "10001",
+    "11111"
+  ],
+  '9': [
+    "11111",
+    "10001",
+    "10001",
+    "11111",
+    "00001",
+    "00001",
+    "11111"
+  ],
+  ':': [
+    "00000",
+    "00100",
+    "00100",
+    "00000",
+    "00100",
+    "00100",
+    "00000"
+  ]
+};
+
+// Responsive sizing
+function resize() {
+  // Display 6 chars: HH:MM:SS (but we render HH MM SS with colons)
+  const chars = 8; // 2 digits + colon + 2 digits + colon + 2 digits
+  // width calculation: each digit is 5 pixels wide, plus gaps
+  const digitWidthPix = 5 * PIX + (5 - 1) * GAP;
+  const colonWidth = PIX; // small width
+  const totalWidth = digitWidthPix * 6 + colonWidth * 2 + DIGIT_SP * 5;
+  const totalHeight = 7 * PIX + (7 - 1) * GAP;
+
+  // scale canvas so it fits window pleasantly
+  const scale = Math.min((window.innerWidth - 80) / totalWidth, (window.innerHeight - 180) / totalHeight, 3);
+  canvas.width = Math.round(totalWidth * scale);
+  canvas.height = Math.round(totalHeight * scale);
+  ctx.setTransform(scale,0,0,scale,0,0);
+  draw(); // immediate draw
+}
+
+// Draw a single digit at (x, y) in pixels (units of PIX)
+function drawDigit(ch, x, y, colorOn, colorOff){
+  const map = DIGITS[ch] || DIGITS['0'];
+  for(let row=0; row<map.length; row++){
+    const line = map[row];
+    for(let col=0; col<line.length; col++){
+      const on = line[col] === '1';
+      const px = x + col * (PIX + GAP);
+      const py = y + row * (PIX + GAP);
+      ctx.fillStyle = on ? colorOn : colorOff;
+      // Draw rounded pixel
+      roundRect(ctx, px, py, PIX, PIX, PIX * 0.18);
+    }
+  }
+}
+
+// helper: rounded rectangle fill
+function roundRect(ctx,x,y,w,h,r){
+  const rr = Math.min(r,w/2,h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+rr,y);
+  ctx.arcTo(x+w,y,x+w,y+h,rr);
+  ctx.arcTo(x+w,y+h,x,y+h,rr);
+  ctx.arcTo(x,y+h,x,y,rr);
+  ctx.arcTo(x,y,x+w,y,rr);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function getTimeParts(){
+  const d = new Date();
+  let hrs = d.getHours();
+  let ampm = '';
+  if(!format24){
+    ampm = hrs >= 12 ? 'PM' : 'AM';
+    hrs = hrs % 12;
+    if(hrs === 0) hrs = 12;
+  }
+  const mm = d.getMinutes();
+  const ss = d.getSeconds();
+  return { hrs, mm, ss, ampm };
+}
+
+function pad2(n){ return n < 10 ? '0' + n : '' + n; }
+
+function draw(){
+  // clear
+  ctx.fillStyle = palette.bg;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  const { hrs, mm, ss } = getTimeParts();
+  const hStr = pad2(hrs);
+  const mStr = pad2(mm);
+  const sStr = pad2(ss);
+
+  // Calculate layout metrics (in PIX units)
+  const digitWidth = 5 * PIX + (5 - 1) * GAP;
+  const digitHeight = 7 * PIX + (7 - 1) * GAP;
+  const colonWidth = PIX + GAP;
+  // Start X center
+  const contentWidth = digitWidth*6 + colonWidth*2 + DIGIT_SP * 5;
+  let startX = (canvas.width / (ctx.getTransform().a) - contentWidth) / 2;
+  const startY = (canvas.height / (ctx.getTransform().a) - digitHeight) / 2;
+
+  const colorOn = document.documentElement.style.getPropertyValue('--pixel') || palette.pixel;
+  const colorOff = document.documentElement.style.getPropertyValue('--pixel-off') || palette.pixelOff;
+  const colonColor = palette.accent;
+
+  // Draw digits: H1 H2 : M1 M2 : S1 S2
+  let x = startX;
+  drawDigit(hStr[0], x, startY, colorOn, colorOff); x += digitWidth + DIGIT_SP;
+  drawDigit(hStr[1], x, startY, colorOn, colorOff); x += digitWidth + DIGIT_SP;
+  // colon
+  drawDigit(':', x, startY, colonColor, colorOff); x += colonWidth + DIGIT_SP;
+  drawDigit(mStr[0], x, startY, colorOn, colorOff); x += digitWidth + DIGIT_SP;
+  drawDigit(mStr[1], x, startY, colorOn, colorOff); x += digitWidth + DIGIT_SP;
+  drawDigit(':', x, startY, colonColor, colorOff); x += colonWidth + DIGIT_SP;
+  drawDigit(sStr[0], x, startY, colorOn, colorOff); x += digitWidth + DIGIT_SP;
+  drawDigit(sStr[1], x, startY, colorOn, colorOff);
+
+  // optional: small footer text (scaled)
+  ctx.font = `${PIX}px system-ui`;
+  ctx.fillStyle = '#91a4b4';
+  ctx.textBaseline = 'bottom';
+  //ctx.fillText(format24 ? '24h' : '12h', 10, canvas.height / ctx.getTransform().a - 6);
+}
+
+let raf;
+function tick(){
+  if(!paused){
+    draw();
+  }
+  raf = requestAnimationFrame(() => {
+    // sync to next second boundary to keep seconds accurate
+    const now = performance.now();
+    setTimeout(tick, 1000 - (now % 1000));
+  });
+}
+
+// initial
+window.addEventListener('resize', resize);
+resize();
+tick();
+
+// Controls
+document.getElementById('toggleFmt').addEventListener('click', () => {
+  format24 = !format24;
+});
+
+document.getElementById('colPixel').addEventListener('input', (e) => {
+  document.documentElement.style.setProperty('--pixel', e.target.value);
+  palette.pixel = e.target.value;
+  draw();
+});
+document.getElementById('colBG').addEventListener('input', (e) => {
+  document.documentElement.style.setProperty('--bg', e.target.value);
+  document.body.style.background = e.target.value;
+  palette.bg = e.target.value;
+  draw();
+});
+
+document.getElementById('zoomIn').addEventListener('click', () => {
+  PIX = Math.min(PIX + 1, 20);
+  resize();
+});
+document.getElementById('zoomOut').addEventListener('click', () => {
+  PIX = Math.max(4, PIX - 1);
+  resize();
+});
+document.getElementById('pause').addEventListener('click', (e) => {
+  paused = !paused;
+  e.target.textContent = paused ? 'Resume' : 'Pause';
+});
+</script>
+</body>
+</html>
